@@ -1,0 +1,55 @@
+{
+  "skill_name": "reviewing-branch-code-health",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm about to open a PR from my current branch. Run a code health check across all the files I changed versus main and show me which ones are in the worst shape.",
+      "expected_output": "A markdown table of the branch's changed source files ranked by absolute Code Health score ascending (worst on top), each row showing the score with its band, the improved/degraded/stable/new trend, and the file's code smells, plus the overall quality-gate result.",
+      "files": [],
+      "expectations": [
+        "Resolves the diff base as the merge-base of the branch and the default branch (three-dot), not the default branch's raw tip.",
+        "Obtains the list of changed files from git (e.g. git diff --name-status), not from analyze_change_set results.",
+        "Calls the CodeScene code_health_review tool with an absolute path for each changed source file.",
+        "The output table is sorted by Code Health score ascending, so the lowest (unhealthiest) score appears at the top.",
+        "Each file row shows both an absolute score in the 1.0-10.0 range and a branch-impact trend.",
+        "Reports the overall quality gate as passed or failed.",
+        "Does not treat a higher score as worse than a lower one."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Before I push, score the code health of my branch. Heads up, this branch also touches the README and a package.json, not just source.",
+      "expected_output": "Only CodeScene-supported source files appear in the ranked table; the README (.md) and package.json are silently excluded rather than passed to the review tool or shown as errors.",
+      "files": [],
+      "expectations": [
+        "The README.md and package.json do not appear as rows in the output table.",
+        "The skill does not call code_health_review on the .md or .json files.",
+        "No 'unsupported file type' error surfaces in the final output.",
+        "Changed source files are still scored and ranked worst-first."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Can you run a branch code health report? I just want to check where things stand.",
+      "expected_output": "When the branch has no changed source files versus its base, the skill reports that there is nothing to score, without fabricating scores, inventing a file list, or erroring out.",
+      "files": [],
+      "expectations": [
+        "Recognizes that there are no changed source files to review.",
+        "Reports this plainly instead of producing a table of fabricated or unrelated files.",
+        "Does not invent Code Health scores."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "My branch adds one brand-new module and reworks an existing one. Which changed files got worse, and how healthy are they now?",
+      "expected_output": "A table where the reworked file whose smells increased is marked degraded with its current absolute score, a newly-added clean file is marked new (not degraded or stable), and rows are ordered worst-first.",
+      "files": [],
+      "expectations": [
+        "A newly added file with no introduced smells is labeled new, not degraded or stable.",
+        "A modified file that introduced smells is labeled degraded.",
+        "Each file's trend comes from analyze_change_set verdicts, with git add/modify status distinguishing new from stable.",
+        "Files are ordered by absolute score, worst first."
+      ]
+    }
+  ]
+}
