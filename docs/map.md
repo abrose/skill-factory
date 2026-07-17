@@ -10,7 +10,7 @@ skill-factory/
 │   ├── sources.txt                     # URLs to fetch docs from
 │   ├── fetch_anthropic_skill_docs.py   # Fetch latest Anthropic docs
 │   ├── fetch_skill_creator.py          # Fetch latest skill-creator from GitHub
-│   ├── fetch_writing_great_skills.py   # Fetch Matt Pocock's writing-great-skills skill (MIT)
+│   ├── fetch_writing_for_agents.py     # Fetch Matt Pocock's writing-for-agents skill (MIT)
 │   ├── next_iteration.py               # Mint fresh iteration-N dir in an eval workspace
 │   ├── test_next_iteration.py          # Tests for next_iteration.py
 │   ├── patch_eval_viewer.py            # Re-apply local viewer fix (inline text for extensionless outputs) after update-docs
@@ -24,7 +24,7 @@ skill-factory/
 │   │   │   ├── best-practices.md       # Proven patterns, common pitfalls, guidelines
 │   │   │   ├── sub-agents.md           # Subagent configuration (context: fork)
 │   │   │   └── hooks-guide.md          # Hooks and skill integration
-│   │   ├── writing-great-skills/       # Matt Pocock's authoring theory (vendored, MIT — see ATTRIBUTION.md)
+│   │   ├── writing-for-agents/       # Matt Pocock's authoring theory (vendored, MIT — see ATTRIBUTION.md)
 │   │   │   ├── SKILL.md                # Invocation choice, information hierarchy, leading words, failure modes
 │   │   │   └── GLOSSARY.md             # Full definitions of the bold terms
 │   │   └── anthropic-skill-creator/     # Anthropic's skill-creator (eval infrastructure)
@@ -70,7 +70,8 @@ skill-factory/
         ├── playwright-cli/
         ├── using-uv/
         ├── using-yaks/                 # draft, no SKILL.md yet
-        └── writing-bash-scripts/
+        ├── writing-bash-scripts/
+        └── writing-herdr-plugins/
 ```
 
 Eval workspaces are created as siblings to skill directories, named `{skill-name}-workspace/` (e.g., `c4-diagrams-workspace/`). They are gitignored and not tracked.

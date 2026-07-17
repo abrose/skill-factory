@@ -7,6 +7,7 @@ STARTER_CHARACTER = 📚
 Create a Claude Code skill.
 
 Skills are a context management mechanism. They package knowledge Claude needs for specific tasks while keeping context lean through progressive disclosure:
+
 - **Startup**: Only name + description loaded (~100 tokens per skill)
 - **When triggered**: Full SKILL.md instructions loaded
 - **As needed**: References loaded only when the task requires them
@@ -18,21 +19,27 @@ Skills are NOT slash commands - those are user-invoked prompts.
 ## Steps
 
 ### 1. Update Documentation
+
 Run the update script to fetch the latest Anthropic skill docs:
+
 ```bash
 ./update-docs
 ```
 
 ### 2. Learn Skill Patterns
+
 Read the official documentation in `docs/knowledge/anthropic-skill-docs/`:
+
 - `overview.md` - Core concepts and architecture
 - `skills.md` - Implementation patterns
 - `best-practices.md` - Guidelines and pitfalls
 
-Then read `docs/knowledge/writing-great-skills/SKILL.md` and its `GLOSSARY.md` — the authoring theory this process builds on: invocation choice, information hierarchy, leading words, failure modes. Vendored from [mattpocock/skills](https://github.com/mattpocock/skills) by Matt Pocock (MIT).
+Then read `docs/knowledge/writing-for-agents/SKILL.md` and its `GLOSSARY.md` — the authoring theory this process builds on: invocation choice, information hierarchy, leading words, failure modes. Vendored from [mattpocock/skills](https://github.com/mattpocock/skills) by Matt Pocock (MIT).
 
 ### 3. Clarify the Goal
+
 Ask the user:
+
 - What specific task should Claude be able to do?
 - Think about what Claude does NOT already know that this skill needs to provide. Show it as a suggestion to the user.
 - Are there examples that should be included as reference material? You can search online or ask for the user input.
@@ -40,21 +47,24 @@ Ask the user:
 ### 4. Choose Invocation, Propose Name and Description
 
 **Invocation first.** Decide who fires the skill:
+
 - Model-invoked (default): the agent triggers it from the description, and other skills can reach it. The description sits in context every turn — it must earn that load.
 - User-invoked (`disable-model-invocation: true`): only the user, typing its name, fires it. Zero context load; the description becomes a human-facing one-liner and the trigger guidance below doesn't apply.
 
 Pick model-invocation only when the agent or another skill must reach the skill on its own.
 
 Based on what the user described, SUGGEST:
+
 - A skill name (the essence of what it does, extremely succinct, lowercase with hyphens)
 - A description for discovery (see guidance below)
 
 **Writing the description:**
 The description is the primary trigger mechanism — Claude Code uses it to decide when to activate a skill from potentially 100+ installed skills. It must be lean and precise.
 
-Distill the essential purpose. Don't echo the user's phrasing — capture the *gist* of what the skill is and when it should fire. Lead with what the skill does (third person), then include trigger context.
+Distill the essential purpose. Don't echo the user's phrasing — capture the _gist_ of what the skill is and when it should fire. Lead with what the skill does (third person), then include trigger context.
 
 Evaluate the description through each lens:
+
 - Gist: Does it capture what the skill IS, or is it echoing what the user said?
 - Leading word: The skill's anchor concept opens the description and does the invocation work.
 - One trigger per branch: Synonyms that rename the same use case are duplication — keep only genuinely distinct branches.
@@ -70,13 +80,16 @@ Each iteration of the description goes to its own file: `playground/{skill-name}
 Present both for user approval before proceeding.
 
 ### 5. Research (if needed)
+
 If the domain is unfamiliar:
+
 - Gather domain knowledge first
 - Identify patterns, terminology, and common workflows
 
 ### 6. Design Structure
 
 **Skill anatomy:**
+
 ```
 skill-name/
 ├── SKILL.md (required)
@@ -86,6 +99,7 @@ skill-name/
 ```
 
 Decide scope:
+
 - **Single file**: Simple guidance, under 500 lines
 - **Multi-file**: Complex domain with reference materials or scripts
 
@@ -94,20 +108,23 @@ Decide scope:
 ### 7. Write SKILL.md
 
 **Frontmatter:**
+
 ```yaml
 ---
 name: skill-name
 description: [What it does]. Use when [trigger context]. (drop the second part if it's redundant with the first)
 ---
 ```
+
 - Name: The essence of what the skill does. Lowercase, hyphens. Avoid verbose names.
 - Description: Lean and precise. Third person. Lead with what the skill does, follow with trigger context. This is the primary triggering mechanism — revisit step 4 guidance if needed.
 
 **Body:**
+
 - Start with `STARTER_CHARACTER = [emoji]` — This signals when the skill is active. Pick an emoji that represents the skill's purpose as much as possible.
 - Concise instructions. Assume Claude is smart, but help guide and focus it by providing good order and progressive disclosure.
 - End each step on a completion criterion the agent can check — exhaustive where it matters ("every modified model accounted for", not "produce a change list"). A vague criterion invites premature completion.
-- Collapse restatements into a leading word — one pretrained concept the agent thinks with (a *tight* loop, the test goes *red*). Reuse it in the description so invocation and execution share the anchor.
+- Collapse restatements into a leading word — one pretrained concept the agent thinks with (a _tight_ loop, the test goes _red_). Reuse it in the description so invocation and execution share the anchor.
 - Prompt the positive: state the target behaviour directly. Keep a prohibition only as a hard guardrail you can't phrase positively, and pair it with what to do instead.
 - Use principles + anti-examples, not good examples to copy (avoids collapsing solution space)
 - Write declarative instructions in plain prose; lists over markdown tables (tables require rendering to read easily)
@@ -117,6 +134,7 @@ description: [What it does]. Use when [trigger context]. (drop the second part i
 **References:** Detailed docs, loaded only when needed. The branch test decides what moves out: inline what every run needs; push behind a context pointer what only some branches reach. The pointer's wording, not its target, decides whether the agent follows it — say what the file holds and when to read it.
 
 **Examples in references:** When including examples, add framing:
+
 > "These illustrate the principle. Consider what fits your context."
 
 **Scripts:** For operations that need deterministic reliability.
@@ -124,12 +142,15 @@ description: [What it does]. Use when [trigger context]. (drop the second part i
 **One level deep means link chains, not folders.** SKILL.md should link directly to content files - avoid SKILL.md → index.md → actual-content.md chains. Organizing references into subfolders (`references/architecture/`, `references/building/`) is fine as long as SKILL.md links directly to each file.
 
 ### 9. Review Against Best Practices
+
 First run the mechanical frontmatter check — it catches invalid YAML, disallowed keys, name/description limits, and angle brackets in the description:
+
 ```bash
 uv run --with pyyaml docs/knowledge/anthropic-skill-creator/scripts/quick_validate.py output_skills/{category}/{skill-name}
 ```
 
 Then re-read `docs/knowledge/anthropic-skill-docs/best-practices.md` and `skills.md` (troubleshooting section). Compare to what you created:
+
 - Does the description include clear trigger words?
 - Run the no-op test sentence by sentence: does this sentence change behaviour versus what Claude does by default? Delete failing sentences whole — rewriting them just shrinks the no-op.
 - Single source of truth: each meaning lives in one place, so changing a behaviour is a one-place edit.
@@ -139,17 +160,21 @@ Then re-read `docs/knowledge/anthropic-skill-docs/best-practices.md` and `skills
 Suggest improvements before proceeding.
 
 ### 10. Evaluate (optional)
+
 Ask the user if they'd like to create evals for this skill. Explain that evals are realistic test prompts paired with assertions about expected output — they measure whether the skill actually improves Claude's behavior compared to baseline, track quality across iterations, and catch regressions. If yes, follow `docs/create_evals-process.md`.
 
 ### 11. Install Skill (optional)
+
 Ask user: **Global skill or project skill?**
 
 **Global (symlink, personal, all projects):**
+
 ```bash
 ./skills install [skill-name]
 ```
 
 **Project (copy, shared via git):**
+
 ```bash
 ./skills local install [skill-name]
 ```
@@ -159,13 +184,16 @@ Check status with `./skills status` or `./skills local status`.
 Tell user to restart Claude Code to load the skill.
 
 ### 12. Test
+
 - Restart Claude Code to load the skill
 - Ask Claude to do a task that should trigger the skill
 - Verify: Does it trigger? Does Claude follow instructions correctly?
 - Try edge cases
 
 ### 13. Iterate
-Diagnose observed problems against the failure modes (full definitions in `docs/knowledge/writing-great-skills/SKILL.md`):
+
+Diagnose observed problems against the failure modes (full definitions in `docs/knowledge/writing-for-agents/SKILL.md`):
+
 - Doesn't trigger → sharpen the description: leading word up front, one trigger per branch
 - Rushes or skips steps → premature completion: sharpen the completion criterion first; split the sequence only if the criterion is irreducibly fuzzy and the rush persists
 - Same meaning in several places → duplication: collapse to a single source of truth, or into a leading word
@@ -175,6 +203,7 @@ Diagnose observed problems against the failure modes (full definitions in `docs/
 - Steering by prohibition → negation: restate as the target behaviour
 
 ## Output
+
 Save completed skill to `output_skills/[category]/[skill-name]/SKILL.md`.
 
 Look at existing category folders in `output_skills/` and pick the best fit. Confirm with the user before saving. If none fit well, propose a new category — suggest your best pick, list alternatives you considered with brief reasons for rejecting them, then let the user decide.

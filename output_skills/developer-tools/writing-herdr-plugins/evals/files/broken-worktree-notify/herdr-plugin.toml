@@ -1,0 +1,10 @@
+id = "eval.worktree-notify"
+name = "Worktree Notify"
+version = "0.2.1"
+min_herdr_version = "0.7.0"
+description = "Log a line whenever a worktree is created"
+platforms = ["linux", "macos"]
+
+[[events]]
+on = "worktree.create"
+command = ["bash notify.sh"]

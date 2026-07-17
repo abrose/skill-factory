@@ -9,10 +9,10 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
 REPO_ROOT = SCRIPT_DIR.parent
-OUTPUT_DIR = REPO_ROOT / "docs" / "knowledge" / "writing-great-skills"
+OUTPUT_DIR = REPO_ROOT / "docs" / "knowledge" / "writing-for-agents"
 
 REPO = "mattpocock/skills"
-SKILL_PATH = "skills/productivity/writing-great-skills"
+SKILL_PATH = "skills/productivity/writing-for-agents"
 API_BASE = f"https://api.github.com/repos/{REPO}/contents"
 TIMEOUT = 30
 
@@ -55,7 +55,7 @@ def fetch_license():
 
 
 def fetch_writing_great_skills():
-    print(f"Fetching writing-great-skills from {REPO}...")
+    print(f"Fetching writing-for-agents from {REPO}...")
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     fetch_directory(SKILL_PATH, OUTPUT_DIR)
     fetch_license()

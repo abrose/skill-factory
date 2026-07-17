@@ -1,0 +1,100 @@
+{
+  "skill_name": "writing-herdr-plugins",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We live in herdr worktrees and every new one needs the same two chores: copy .env across from the main checkout, then run npm install. Can you write me a herdr plugin that just does this whenever a worktree gets created? Node is fine, everyone here has it. Also the whole team shares this, so make it something I can put on GitHub later.",
+      "expected_output": "A plugin directory with a valid herdr-plugin.toml declaring an [[events]] hook on the exact event name worktree.created, plus a Node command that filters early, exits 0 when not applicable, calls herdr through HERDR_BIN_PATH, and keeps durable state out of the plugin root.",
+      "expectations": [
+        "A herdr-plugin.toml exists declaring all four required top-level fields: id, name, version, and min_herdr_version",
+        "The manifest declares a top-level platforms list",
+        "The manifest declares an [[events]] entry whose on value is exactly the string 'worktree.created' — 'worktree.create', 'worktree_created', or any other spelling fails this assertion",
+        "Running `herdr plugin link <plugin-dir>` returns a result object whose plugin has no 'warnings' key (unlink afterwards to leave the registry clean)",
+        "Every command value is an argv array of separate arguments — no element contains a space-separated command line like 'node index.js', and no element contains shell metacharacters (&&, |, >, $VAR, *) unless the array's first element is a shell such as bash/sh with -c",
+        "The event command invokes herdr via the HERDR_BIN_PATH environment variable with a fallback, not a bare hardcoded 'herdr'",
+        "The command reads the event payload from HERDR_PLUGIN_EVENT_JSON or HERDR_PLUGIN_CONTEXT_JSON rather than assuming the worktree path from cwd alone",
+        "The command guards its work and exits with status 0 when the hook does not apply (for example when no .env exists in the source checkout) rather than throwing or exiting non-zero",
+        "No durable state, credential, log, or database file is written under HERDR_PLUGIN_ROOT or the plugin's own directory; anything durable goes to HERDR_PLUGIN_STATE_DIR and any user config to HERDR_PLUGIN_CONFIG_DIR",
+        "The response does not claim the plugin needs registration, an SDK, an import of a herdr library, or any runtime action-registration call",
+        "No README.md-only deliverable: the actual manifest and the actual Node command file are both written to disk"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "My herdr plugin is broken and I'm losing my mind. It's supposed to log a line every time a worktree gets created. `herdr plugin link` works fine — no errors, exit 0, it shows up in `herdr plugin list`. But nothing ever happens when I make a worktree. The plugin is at evals/files/broken-worktree-notify/. Can you figure out what's wrong and fix it?",
+      "expected_output": "A diagnosis identifying the misspelled event name as the reason the hook never fires, an explanation that link reports this only through a warnings field rather than an error, and fixes for the single-string argv command and the state file written into the plugin root.",
+      "expectations": [
+        "Identifies the misspelled event name (on = 'worktree.create') as the root cause of the hook never firing, and states the correct name is 'worktree.created'",
+        "Explains that herdr does not reject an unknown event name — the link succeeds and the only evidence is a 'warnings' entry in the response, e.g. \"unknown event 'worktree.create'\"",
+        "Names a concrete way to surface that warning, such as re-running `herdr plugin link` and reading the warnings field, or `herdr plugin list --json`",
+        "Identifies that command = [\"bash notify.sh\"] is a single argv element and therefore makes herdr look for a binary literally named 'bash notify.sh'; the fix splits it into [\"bash\", \"notify.sh\"]",
+        "Explains that herdr never runs commands through a shell, so the single string is not word-split the way a shell would split it",
+        "Identifies that notify.sh writes its log to $HERDR_PLUGIN_ROOT/seen-worktrees.log and that the plugin root is a managed checkout replaced on reinstall, so durable state belongs in HERDR_PLUGIN_STATE_DIR",
+        "The fixed notify.sh writes its log under HERDR_PLUGIN_STATE_DIR",
+        "The corrected manifest links with no warnings key: `herdr plugin link <dir>` returns a plugin object without 'warnings' (unlink afterwards)",
+        "Mentions `herdr plugin log list` as where a failing command's stderr, spawn error, or exit code actually surfaces, since plugin stdout is captured rather than printed",
+        "Does not attribute the failure to the plugin being disabled, to a missing herdr restart, to a permissions problem, or to any cause other than the three real defects",
+        "The diagnosis is grounded in the actual file contents rather than generic plugin-debugging advice that would apply to any plugin"
+      ],
+      "files": ["broken-worktree-notify/herdr-plugin.toml", "broken-worktree-notify/notify.sh"]
+    },
+    {
+      "id": 3,
+      "prompt": "In herdr, when I click a Jira ticket URL in a terminal pane it opens my browser, which I hate. Our tickets look like https://acme.atlassian.net/browse/APP-5329. I'd rather it pop the ticket open in a split pane next to me using the `jira` CLI I already have installed. Bash please, I don't want a node dependency for this. macOS.",
+      "expected_output": "A plugin with a [[link_handlers]] entry whose regex matches the Jira URL and whose action names an action declared in the same plugin, an action that reads the clicked URL from the environment and opens a [[panes]] entrypoint with split placement via HERDR_BIN_PATH.",
+      "expectations": [
+        "The manifest declares a [[link_handlers]] entry with a pattern and an action field",
+        "The link handler's pattern is a regex that matches https://acme.atlassian.net/browse/APP-5329 and does not match an arbitrary unrelated URL such as https://github.com/foo/bar/issues/1 (verify by testing the regex against both strings)",
+        "The link handler's action value names an action id declared by the same plugin — not a pane id, and not an id belonging to no entrypoint",
+        "The manifest declares a [[panes]] entrypoint, and the pane opens with split placement (either placement = 'split' in the manifest or --placement split on the open command)",
+        "The action command reads the clicked URL from HERDR_PLUGIN_CLICKED_URL, or parses clicked_url out of HERDR_PLUGIN_CONTEXT_JSON",
+        "The action opens the pane by calling `herdr plugin pane open` through HERDR_BIN_PATH, passing the URL or ticket key to the pane via --env, rather than trying to render the ticket itself",
+        "Running `herdr plugin link <plugin-dir>` returns a result whose plugin has no 'warnings' key (unlink afterwards)",
+        "Every command is an argv array of separate elements, with any shell pipeline confined inside a bash -c argument",
+        "If the response describes the click gesture to the user, it says Control+click and does not tell a macOS user to use Command+click",
+        "The action exits 0 without erroring when no clicked URL is present in the environment",
+        "Does not claim herdr can open the URL in a browser-like or non-terminal plugin UI, and does not invent a manifest field for browser interception"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "I want to write my next herdr plugin in Rust for once — just an action that tells me whether the current workspace's git checkout is dirty. I'm on macOS and Linux, no Windows. The thing I can't figure out: if someone installs this from GitHub, how does the binary actually get built? Set it up for me.",
+      "expected_output": "A Rust plugin with a [[build]] entry running cargo, an action whose command points at the compiled binary by a path relative to the plugin root, and an explanation that build runs on install but never on link so local authors must build the working tree themselves.",
+      "expectations": [
+        "The manifest declares a [[build]] entry whose command runs cargo to build the binary (e.g. ['cargo', 'build', '--release'])",
+        "The action's command points at the compiled binary via a path relative to the plugin directory (e.g. './target/release/<name>'), and the response explains this resolves because runtime commands run with the plugin directory as their working directory",
+        "States explicitly that [[build]] commands run during `herdr plugin install` but NOT during `herdr plugin link`, so a locally linked plugin must be built by hand first",
+        "The manifest declares platforms as exactly linux and macos, without windows",
+        "A Cargo.toml and a src/main.rs are both written to disk, and `cargo build` in the plugin directory completes with exit code 0",
+        "`cargo build` produces no compiler warnings (verify the build output is clean, not merely successful)",
+        "The Rust code reads HERDR_PLUGIN_CONTEXT_JSON and uses a workspace path from it (such as workspace_cwd) to decide which checkout to inspect, rather than relying only on the process cwd",
+        "Context fields deserialized from HERDR_PLUGIN_CONTEXT_JSON are treated as optional/absent-tolerant rather than unwrapped as guaranteed present",
+        "The response states that the user's machine must already have cargo, and that herdr reports a failed build without installing any toolchain",
+        "Explains that a failing [[build]] aborts `herdr plugin install` and the plugin is never registered",
+        "Does not suggest committing the compiled binary to the repository as the way to make install work"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Right, my herdr plugin works on my machine — linked locally and doing its job. Now I want other people to be able to actually get it, and ideally have it show up in the herdr marketplace thing. What do I actually have to do?",
+      "expected_output": "Publishing guidance covering the GitHub topic herdr-plugin as the entire marketplace mechanism, the install shorthand, min_herdr_version discipline, and the install-versus-link differences, without inventing a submission or review process.",
+      "expectations": [
+        "States that marketplace listing requires adding the GitHub topic 'herdr-plugin' to a public repository containing a herdr-plugin.toml",
+        "Does NOT invent a submission form, registry account, publish command, review or approval process, or any marketplace step beyond the GitHub topic — inventing any of these fails this assertion",
+        "Gives the install command in the correct GitHub shorthand form, `herdr plugin install owner/repo` (optionally with /subdir), and does not present a URL, a git clone, or a local path as the way others install it",
+        "Explains that min_herdr_version should be the oldest herdr version supporting the features the plugin actually uses, not the version on the author's machine",
+        "Mentions that the marketplace index is automatic and refreshes periodically (roughly every 30 minutes) rather than appearing instantly on demand",
+        "Notes that [[build]] commands run on install (unlike link), so a plugin needing a build step must have that declared before others install it",
+        "Advises documenting required toolchains (cargo, npm, bun, lua, etc.) since herdr reports build failures but never installs toolchains",
+        "Mentions that there is no `herdr plugin update` — refreshing a GitHub-managed plugin means reinstalling",
+        "Points at `herdr plugin config-dir <id>` as what setup instructions should tell users to run, rather than hardcoding a config path",
+        "Advises that credentials belong in HERDR_PLUGIN_CONFIG_DIR and must not be committed to the repo or written into the plugin root",
+        "Mentions that install shows users a preview of the source and commands, and that herdr does not sandbox or review plugin code, so readable manifests and scripts matter"
+      ],
+      "files": []
+    }
+  ]
+}
