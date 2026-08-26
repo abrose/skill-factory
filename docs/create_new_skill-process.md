@@ -29,7 +29,7 @@ Read the official documentation in `docs/knowledge/anthropic-skill-docs/`:
 - `skills.md` - Implementation patterns
 - `best-practices.md` - Guidelines and pitfalls
 
-Then read `docs/knowledge/writing-great-skills/SKILL.md` and its `GLOSSARY.md` — the authoring theory this process builds on: invocation choice, information hierarchy, leading words, failure modes. Vendored from [mattpocock/skills](https://github.com/mattpocock/skills) by Matt Pocock (MIT).
+Then read `docs/knowledge/writing-for-agents/SKILL.md` and its `SKILL-MECHANICS.md` — the authoring theory this process builds on: context pointers, information hierarchy, leading words, pruning, invocation choice. Vendored from [mattpocock/skills](https://github.com/mattpocock/skills) by Matt Pocock (MIT).
 
 ### 3. Clarify the Goal
 Ask the user:
@@ -165,7 +165,7 @@ Tell user to restart Claude Code to load the skill.
 - Try edge cases
 
 ### 13. Iterate
-Diagnose observed problems against the failure modes (full definitions in `docs/knowledge/writing-great-skills/SKILL.md`):
+Diagnose observed problems against the failure modes (full definitions in `docs/knowledge/writing-for-agents/SKILL.md`):
 - Doesn't trigger → sharpen the description: leading word up front, one trigger per branch
 - Rushes or skips steps → premature completion: sharpen the completion criterion first; split the sequence only if the criterion is irreducibly fuzzy and the rush persists
 - Same meaning in several places → duplication: collapse to a single source of truth, or into a leading word
