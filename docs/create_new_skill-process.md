@@ -206,4 +206,6 @@ Diagnose observed problems against the failure modes (full definitions in `docs/
 
 Save completed skill to `output_skills/[category]/[skill-name]/SKILL.md`.
 
-Look at existing category folders in `output_skills/` and pick the best fit. Confirm with the user before saving. If none fit well, propose a new category — suggest your best pick, list alternatives you considered with brief reasons for rejecting them, then let the user decide.
+If `output_skills/own` exists (created by `./setup`), it links to the user's own skills repository: save new skills there as `output_skills/own/[skill-name]/SKILL.md`, with no category folder. The other category folders hold the skills this repository ships.
+
+Otherwise, look at existing category folders in `output_skills/` and pick the best fit. Confirm with the user before saving. If none fit well, propose a new category — suggest your best pick, list alternatives you considered with brief reasons for rejecting them, then let the user decide.

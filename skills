@@ -19,7 +19,15 @@ def discover_skills():
         return {}
     registry = {}
     collisions = []
-    for skill_md in sorted(SKILLS_SOURCE_DIR.rglob("SKILL.md")):
+    # Search each category from its own root so a symlinked category
+    # (output_skills/own, see ./setup) is followed.
+    skill_mds = (
+        skill_md
+        for category in SKILLS_SOURCE_DIR.iterdir()
+        if category.is_dir()
+        for skill_md in category.rglob("SKILL.md")
+    )
+    for skill_md in sorted(skill_mds):
         skill_dir = skill_md.parent
         name = skill_dir.name
         if name in registry:

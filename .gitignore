@@ -81,3 +81,6 @@ Thumbs.db
 playground/
 workspace/
 *-workspace/
+
+# Link to your own skills checkout, created by ./setup
+output_skills/own

@@ -24,6 +24,11 @@ This keeps context lean while making rich knowledge available on demand.
 3. Answer a few questions — point to references or ask Claude to search online
 4. Find your skill in `output_skills/[category]/[skill-name]/`
 
+To keep your skills in a repository of your own, run `./setup` once. It links
+`output_skills/own` to `skills/` in that checkout (default
+`~/workspace/private/claude/claude-skills`, override with `OWN_SKILLS_CHECKOUT`),
+and new skills are saved there. The link is gitignored.
+
 ## Using Your Skill
 
 This repo includes a `./skills` helper script for global installation.

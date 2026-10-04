@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Link output_skills/own to the skills/ folder of your own skills checkout, so
+# new skills are created there. Override the checkout with OWN_SKILLS_CHECKOUT.
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+checkout="${OWN_SKILLS_CHECKOUT:-$HOME/workspace/private/claude/claude-skills}"
+
+if [[ ! -d "$checkout/.git" ]]; then
+	echo "no git checkout at $checkout (set OWN_SKILLS_CHECKOUT)" >&2
+	exit 1
+fi
+
+mkdir -p "$checkout/skills"
+ln -sfn "$checkout/skills" "$repo_root/output_skills/own"
+echo "output_skills/own -> $checkout/skills"
